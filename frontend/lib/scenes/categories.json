@@ -1,0 +1,64 @@
+[
+  {
+    "categoryId": "kitchen",
+    "categoryName": "Kitchen",
+    "objects": [
+      {
+        "id": "apple",
+        "label": { "es": "manzana", "en": "apple", "fr": "pomme", "de": "Apfel" },
+        "imageUrl": "/images/exercise1/apple.png"
+      },
+      {
+        "id": "banana",
+        "label": { "es": "plátano", "en": "banana", "fr": "banane", "de": "Banane" },
+        "imageUrl": "/images/exercise1/banana.png"
+      },
+      {
+        "id": "milk",
+        "label": { "es": "leche", "en": "milk", "fr": "lait", "de": "Milch" },
+        "imageUrl": "/images/exercise1/milk.png"
+      },
+      {
+        "id": "bread",
+        "label": { "es": "pan", "en": "bread", "fr": "pain", "de": "Brot" },
+        "imageUrl": "/images/exercise1/bread.png"
+      },
+      {
+        "id": "cheese",
+        "label": { "es": "queso", "en": "cheese", "fr": "fromage", "de": "Käse" },
+        "imageUrl": "/images/exercise1/cheese.png"
+      }
+    ]
+  },
+  {
+    "categoryId": "bedroom",
+    "categoryName": "Bedroom",
+    "objects": [
+      {
+        "id": "bed",
+        "label": { "es": "cama", "en": "bed", "fr": "lit", "de": "Bett" },
+        "imageUrl": "/images/exercise1/bed.png"
+      },
+      {
+        "id": "lamp",
+        "label": { "es": "lámpara", "en": "lamp", "fr": "lampe", "de": "Lampe" },
+        "imageUrl": "/images/exercise1/lamp.png"
+      },
+      {
+        "id": "window",
+        "label": { "es": "ventana", "en": "window", "fr": "fenêtre", "de": "Fenster" },
+        "imageUrl": "/images/exercise1/window.png"
+      },
+      {
+        "id": "chair",
+        "label": { "es": "silla", "en": "chair", "fr": "chaise", "de": "Stuhl" },
+        "imageUrl": "/images/exercise1/chair.png"
+      },
+      {
+        "id": "book",
+        "label": { "es": "libro", "en": "book", "fr": "livre", "de": "Buch" },
+        "imageUrl": "/images/exercise1/book.png"
+      }
+    ]
+  }
+]

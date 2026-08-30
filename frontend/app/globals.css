@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+/*
+  LinguaBuild design system — "sticker-book adventure."
+  One committed look (no dark-mode swap): a warm parchment/map background
+  with bold ink-outlined, flat-color "sticker" UI — the same die-cut, thick-
+  outline style already used for Exercise 1's AI-generated object icons,
+  extended sitewide so cards, buttons, and badges read as one family of
+  collectible stickers on a quest board.
+*/
+
+@theme {
+  --color-parchment: #fbf1d6;
+  --color-parchment-deep: #f3e1a8;
+  --color-ink: #1b1b2f;
+
+  --color-quest: #ff6b35;
+  --color-quest-deep: #e5501b;
+
+  --color-explorer: #0e8388;
+  --color-explorer-deep: #0b6669;
+
+  --color-treasure: #ffc93c;
+  --color-treasure-deep: #e8a800;
+
+  --color-win: #2fbf71;
+  --color-win-deep: #1f9e5b;
+
+  --color-danger: #e5484d;
+  --color-danger-deep: #c93338;
+
+  --font-display: var(--font-fredoka), "Segoe UI", sans-serif;
+  --font-body: var(--font-nunito), "Segoe UI", sans-serif;
+
+  --shadow-sticker-sm: 2px 2px 0 0 var(--color-ink);
+  --shadow-sticker: 4px 4px 0 0 var(--color-ink);
+  --shadow-sticker-lg: 7px 7px 0 0 var(--color-ink);
+}
+
+body {
+  background-color: var(--color-parchment);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
+
+@layer components {
+  /* Base card: a white sticker panel with thick ink outline + hard shadow */
+  .sticker-panel {
+    @apply rounded-3xl border-4 border-ink bg-white shadow-sticker;
+  }
+
+  /* Primary / secondary chunky pill buttons */
+  .btn-quest {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border-4 border-ink bg-quest px-6 py-3 font-display text-base font-bold text-white shadow-sticker-sm transition-transform hover:-translate-y-0.5 hover:shadow-sticker active:translate-y-0 active:shadow-none disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .btn-explorer {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border-4 border-ink bg-explorer px-6 py-3 font-display text-base font-bold text-white shadow-sticker-sm transition-transform hover:-translate-y-0.5 hover:shadow-sticker active:translate-y-0 active:shadow-none disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-1 font-display text-sm font-bold text-ink underline decoration-4 underline-offset-4 transition-opacity hover:opacity-70;
+  }
+
+  /* Game-HUD style score counter */
+  .badge-score {
+    @apply inline-flex items-center gap-2 rounded-full border-4 border-ink bg-treasure px-4 py-1.5 font-display text-lg font-bold text-ink shadow-sticker-sm;
+  }
+
+  /* Achievement-style popup badge (reinforcement moments) */
+  .badge-achievement {
+    @apply inline-flex items-center gap-2 self-start rounded-full border-4 border-ink bg-explorer px-4 py-2 font-display text-sm font-bold text-white shadow-sticker-sm;
+  }
+
+  /* MCQ / fill-blank answer option button + correct/incorrect states */
+  .option-btn {
+    @apply rounded-2xl border-4 border-ink bg-white px-4 py-3 text-left font-display text-base font-bold text-ink shadow-sticker-sm transition-transform hover:-translate-y-0.5 hover:shadow-sticker disabled:hover:translate-y-0 disabled:hover:shadow-sticker-sm;
+  }
+
+  .option-btn-correct {
+    @apply border-win bg-win text-white;
+  }
+
+  .option-btn-incorrect {
+    @apply border-danger bg-danger text-white opacity-100;
+  }
+
+  .option-btn-neutral-disabled {
+    @apply opacity-60;
+  }
+
+  /* Correct / incorrect feedback banners */
+  .feedback-correct {
+    @apply rounded-2xl border-4 border-win bg-win/15 px-4 py-3 font-display font-bold text-win-deep;
+  }
+
+  .feedback-incorrect {
+    @apply flex flex-col gap-2 rounded-2xl border-4 border-danger bg-danger/10 px-4 py-3 font-body text-danger-deep;
+  }
+
+  .feedback-error {
+    @apply rounded-2xl border-4 border-danger bg-danger/10 px-4 py-3 text-center font-body font-bold text-danger-deep;
+  }
+}

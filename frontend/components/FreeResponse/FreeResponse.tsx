@@ -2,17 +2,23 @@
 
 import { useEffect, useReducer, useState, type FormEvent } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { generateJson } from "@/lib/api";
+import { generateJson, generateJsonStream } from "@/lib/api";
 import {
   buildQAPrompt,
   buildGradingPrompt,
+  difficultyForScore,
   pickRandomPhrase,
   type QAExercise,
   type GradeVerdict,
 } from "@/lib/exercises";
 import { useSession } from "@/lib/session/SessionContext";
+import { useFeedback } from "@/lib/feedback/FeedbackContext";
 import { ReinforcementBadge } from "@/components/ReinforcementBadge/ReinforcementBadge";
+import { ScoreBadge } from "@/components/ScoreBadge/ScoreBadge";
+import { StreamingText } from "@/components/StreamingText/StreamingText";
+import { TranslatableQuestion } from "@/components/TranslatableQuestion/TranslatableQuestion";
 import { SessionNav } from "@/components/SessionNav/SessionNav";
+import { TARGET_LANGUAGE_SPEECH_CODE, type TargetLanguage } from "@/lib/languages";
 
 const NEXT_QUESTION_DELAY_MS = 1200;
 
@@ -73,13 +79,27 @@ function manageGame(state: GameState, action: GameAction): GameState {
 export function FreeResponse() {
   const [state, dispatch] = useReducer(manageGame, initialState);
   const [answerInput, setAnswerInput] = useState("");
+  const [streamingQuestion, setStreamingQuestion] = useState("");
   const { activeVocabulary, sessionStarted, recordScore, hydrated, preferredLanguage, targetLanguage } =
     useSession();
+  const fx = useFeedback();
+  const targetSpeechLang =
+    TARGET_LANGUAGE_SPEECH_CODE[targetLanguage as TargetLanguage] ?? "es-ES";
 
   useEffect(() => {
     recordScore("free-response", state.score);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.score]);
+
+  useEffect(() => {
+    if (!state.verdict) return;
+    if (state.verdict.correct) {
+      fx.celebrate(state.verdict.feedback);
+    } else {
+      fx.stumble(state.verdict.feedback);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.verdict]);
 
   const {
     mutate: loadQuestion,
@@ -87,9 +107,11 @@ export function FreeResponse() {
     error: questionError,
   } = useMutation({
     mutationFn: () => {
+      setStreamingQuestion("");
       const phrase = pickRandomPhrase(activeVocabulary);
-      return generateJson<QAExercise>(
-        buildQAPrompt(phrase, targetLanguage!, preferredLanguage!)
+      return generateJsonStream<QAExercise>(
+        buildQAPrompt(phrase, targetLanguage!, preferredLanguage!, difficultyForScore(state.score)),
+        (partial) => setStreamingQuestion(partial.question ?? "")
       ).then((question) => ({
         question,
         phrase,
@@ -115,6 +137,7 @@ export function FreeResponse() {
           expectedAnswer: question.expected_answer,
           learnerAnswer: answer,
           desiredLanguage: question.desired_language,
+          preferredLanguage: preferredLanguage!,
         })
       );
     },
@@ -159,11 +182,21 @@ export function FreeResponse() {
         <h1 className="font-display text-2xl font-bold text-ink">
           Moment of Truth
         </h1>
-        <span className="badge-score">🏅 Score: {state.score}</span>
+        <ScoreBadge score={state.score} />
       </div>
 
       {isLoadingQuestion && (
-        <p className="font-body font-semibold text-ink/70">Loading question...</p>
+        <>
+          <StreamingText text={streamingQuestion} />
+          <div className="flex w-full flex-col gap-3" aria-hidden>
+            <div className="w-full animate-pulse rounded-2xl border-4 border-ink/10 bg-ink/5 px-4 py-3 font-body text-lg text-transparent shadow-none">
+              placeholder
+            </div>
+            <div className="btn-quest pointer-events-none animate-pulse border-ink/10 bg-ink/5 text-transparent shadow-none">
+              placeholder
+            </div>
+          </div>
+        </>
       )}
 
       {isQuestionError && (
@@ -181,9 +214,12 @@ export function FreeResponse() {
             <ReinforcementBadge words={[state.phrase]} />
           )}
 
-          <p className="sticker-panel w-full p-6 text-center font-body text-lg font-bold text-ink">
-            {state.question.question}
-          </p>
+          <TranslatableQuestion
+            key={state.question.question}
+            question={state.question.question}
+            translation={state.question.question_translation}
+            lang={targetSpeechLang}
+          />
 
           <form onSubmit={handleSubmit} className="flex w-full flex-col gap-3">
             <input

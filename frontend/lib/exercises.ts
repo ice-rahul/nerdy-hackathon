@@ -52,8 +52,30 @@ Respond with a JSON object with exactly these fields:
   return { system, messages: [{ role: "user", content: user }] };
 }
 
+// Question length ramps up over a session rather than staying fixed at "up
+// to 3 sentences" from the first question — level 1 (a learner's first
+// couple of questions) is a single short sentence, so the very first thing
+// a beginner sees is genuinely easy, not already at the hardest setting.
+export type QuestionDifficulty = 1 | 2 | 3;
+
+const QUESTION_LENGTH_INSTRUCTION: Record<QuestionDifficulty, string> = {
+  1: "Keep it very short and simple: ONE short sentence (no more than about 8-10 words) setting up the scenario, then the question itself — do not add extra description.",
+  2: "Keep it short: at most two short sentences total (including the question) — a brief scenario setup, then the question.",
+  3: "You may use up to three short sentences total (including the question) for a slightly richer scenario, but keep every individual sentence short and simple.",
+};
+
+// Maps "questions answered correctly so far this session" to a difficulty
+// level — the same simple threshold-based ramp used for Exercise 1's
+// per-level word count (see plan.md's "level-growth-by-threshold" note).
+export function difficultyForScore(score: number): QuestionDifficulty {
+  if (score < 2) return 1;
+  if (score < 4) return 2;
+  return 3;
+}
+
 export type QAExercise = {
   question: string;
+  question_translation: string;
   expected_answer: string;
   desired_language: string;
 };
@@ -61,18 +83,24 @@ export type QAExercise = {
 export function buildQAPrompt(
   phrase: string,
   desiredLanguage: string,
-  preferredLanguage: string
+  preferredLanguage: string,
+  difficulty: QuestionDifficulty = 1
 ): GenerateRequest {
   const system =
     "You are a language-learning exercise generator. Respond with a single JSON object only — no markdown, no code fences, no commentary.";
 
+  const lengthInstruction = QUESTION_LENGTH_INSTRUCTION[difficulty];
+
   const user = `Create a short-answer speaking-practice question that teaches the ${desiredLanguage} phrase for "${phrase}" (${preferredLanguage}).
 
-Write one simple situational question, in ${desiredLanguage}, whose natural short answer is the ${desiredLanguage} phrase for "${phrase}" — describe a scenario a learner would respond to with that phrase, rather than asking for a translation directly.
+Write a situational question, in ${desiredLanguage}, whose natural short answer is the ${desiredLanguage} phrase for "${phrase}" — describe a scenario a learner would respond to with that phrase, rather than asking for a translation directly. ${lengthInstruction}
+
+Also give a natural ${preferredLanguage} translation of that same question — a learner who doesn't yet understand the ${desiredLanguage} can reveal this to check they understood correctly.
 
 Respond with a JSON object with exactly these fields:
 {
   "question": string,
+  "question_translation": string,
   "expected_answer": string,
   "desired_language": "${desiredLanguage}"
 }`;
@@ -87,6 +115,7 @@ export type GuidedQAOption = {
 
 export type GuidedQAExercise = {
   question: string;
+  question_translation: string;
   options: GuidedQAOption[];
 };
 
@@ -94,24 +123,29 @@ export function buildGuidedQAPrompt(
   phrase: string,
   pool: string[],
   desiredLanguage: string,
-  preferredLanguage: string
+  preferredLanguage: string,
+  difficulty: QuestionDifficulty = 1
 ): GenerateRequest {
   const system =
     "You are a language-learning exercise generator. Respond with a single JSON object only — no markdown, no code fences, no commentary.";
 
   const otherPhrases = pool.filter((p) => p !== phrase).join(", ");
+  const lengthInstruction = QUESTION_LENGTH_INSTRUCTION[difficulty];
 
   const user = `Create a situational multiple-choice question that teaches the ${desiredLanguage} phrase for "${phrase}" (${preferredLanguage}).
 
-Write one simple situational question, in ${desiredLanguage}, describing a scenario where the ${desiredLanguage} phrase for "${phrase}" would be the natural response. The question must be answerable from context alone: a learner who has only seen a small set of common words/phrases (${pool.join(
+Write a situational question, in ${desiredLanguage}, describing a scenario where the ${desiredLanguage} phrase for "${phrase}" would be the natural response. ${lengthInstruction} The question must be answerable from context alone: a learner who has only seen a small set of common words/phrases (${pool.join(
     ", "
   )}) should be able to infer the right answer just from the situation described, without needing to already know any other unfamiliar ${desiredLanguage} vocabulary used in the question. Keep the rest of the ${desiredLanguage} in the question simple, using cognates or a clearly described action so the scenario is understandable to a beginner even if a word or two is unfamiliar.
 
 Then give exactly 4 multiple-choice answer options in ${preferredLanguage}: one correct option, which is the ${preferredLanguage} meaning of "${phrase}", and 3 incorrect distractor options, each the ${preferredLanguage} meaning of a different phrase from this list (do not invent new distractors): ${otherPhrases}.
 
+Also give a natural ${preferredLanguage} translation of the question itself — a learner who doesn't yet understand the ${desiredLanguage} can reveal this to check they understood the scenario correctly.
+
 Respond with a JSON object with exactly these fields:
 {
   "question": string,
+  "question_translation": string,
   "options": [
     { "text": string, "correct": boolean },
     { "text": string, "correct": boolean },
@@ -176,8 +210,9 @@ export function buildGradingPrompt(params: {
   expectedAnswer: string;
   learnerAnswer: string;
   desiredLanguage: string;
+  preferredLanguage: string;
 }): GenerateRequest {
-  const { question, expectedAnswer, learnerAnswer, desiredLanguage } = params;
+  const { question, expectedAnswer, learnerAnswer, desiredLanguage, preferredLanguage } = params;
 
   const system =
     "You are a lenient, encouraging language-learning grader. Respond with a single JSON object only — no markdown, no code fences, no commentary.";
@@ -198,7 +233,7 @@ Respond with a JSON object with exactly these fields:
   "correct": boolean,
   "feedback": string
 }
-Keep feedback to one short, encouraging sentence.`;
+Write "feedback" in ${preferredLanguage} — this is coaching the learner in their native language, not more ${desiredLanguage} practice. Keep it to one short, encouraging sentence.`;
 
   return { system, messages: [{ role: "user", content: user }] };
 }

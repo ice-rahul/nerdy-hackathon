@@ -1,17 +1,23 @@
 "use client";
 
-import { useEffect, useReducer } from "react";
+import { useEffect, useReducer, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { generateJson } from "@/lib/api";
-import { shuffle } from "@/lib/shuffle";
+import { generateJsonStream } from "@/lib/api";
+import { dedupeByKey, shuffle } from "@/lib/shuffle";
 import {
   buildFillBlankPrompt,
   pickRandomPhrase,
   type FillBlankExercise,
 } from "@/lib/exercises";
 import { useSession } from "@/lib/session/SessionContext";
+import { useFeedback } from "@/lib/feedback/FeedbackContext";
 import { ReinforcementBadge } from "@/components/ReinforcementBadge/ReinforcementBadge";
+import { ScoreBadge } from "@/components/ScoreBadge/ScoreBadge";
+import { StreamingText } from "@/components/StreamingText/StreamingText";
+import { OptionsSkeleton } from "@/components/OptionsSkeleton/OptionsSkeleton";
+import { PronounceButton } from "@/components/PronounceButton/PronounceButton";
 import { SessionNav } from "@/components/SessionNav/SessionNav";
+import { TARGET_LANGUAGE_SPEECH_CODE, type TargetLanguage } from "@/lib/languages";
 
 const NEXT_EXERCISE_DELAY_MS = 900;
 
@@ -49,10 +55,12 @@ function manageGame(state: GameState, action: GameAction): GameState {
         ...state,
         exercise: action.exercise,
         phrase: action.phrase,
-        options: shuffle([
-          action.exercise.correct_answer,
-          ...action.exercise.distractor_options,
-        ]),
+        options: shuffle(
+          dedupeByKey(
+            [action.exercise.correct_answer, ...action.exercise.distractor_options],
+            (option) => option
+          )
+        ),
         incorrect: [],
         correct: false,
       };
@@ -73,13 +81,27 @@ function manageGame(state: GameState, action: GameAction): GameState {
 
 export function FillInTheBlank() {
   const [state, dispatch] = useReducer(manageGame, initialState);
+  const [streamingSentence, setStreamingSentence] = useState("");
   const { activeVocabulary, sessionStarted, recordScore, hydrated, preferredLanguage, targetLanguage } =
     useSession();
+  const fx = useFeedback();
+  const targetSpeechLang =
+    TARGET_LANGUAGE_SPEECH_CODE[targetLanguage as TargetLanguage] ?? "es-ES";
 
   useEffect(() => {
     recordScore("fill-in-the-blank", state.score);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.score]);
+
+  useEffect(() => {
+    if (state.correct) fx.celebrate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.correct]);
+
+  useEffect(() => {
+    if (state.incorrect.length > 0) fx.stumble();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.incorrect.length]);
 
   const {
     mutate: loadExercise,
@@ -87,9 +109,11 @@ export function FillInTheBlank() {
     error: fetchError,
   } = useMutation({
     mutationFn: () => {
+      setStreamingSentence("");
       const phrase = pickRandomPhrase(activeVocabulary);
-      return generateJson<FillBlankExercise>(
-        buildFillBlankPrompt(phrase, targetLanguage!, preferredLanguage!)
+      return generateJsonStream<FillBlankExercise>(
+        buildFillBlankPrompt(phrase, targetLanguage!, preferredLanguage!),
+        (partial) => setStreamingSentence(partial.sentence_with_blank ?? "")
       ).then((exercise) => ({ exercise, phrase }));
     },
     onSuccess: ({ exercise, phrase }) =>
@@ -118,11 +142,16 @@ export function FillInTheBlank() {
         <h1 className="font-display text-2xl font-bold text-ink">
           Fill in the Blank
         </h1>
-        <span className="badge-score">🏅 Score: {state.score}</span>
+        <ScoreBadge score={state.score} />
       </div>
 
       {isLoading && (
-        <p className="font-body font-semibold text-ink/70">Loading exercise...</p>
+        <>
+          <StreamingText text={streamingSentence} />
+          <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
+            <OptionsSkeleton count={4} />
+          </div>
+        </>
       )}
 
       {isError && (
@@ -140,8 +169,13 @@ export function FillInTheBlank() {
             <ReinforcementBadge words={[state.phrase]} />
           )}
 
-          <p className="sticker-panel w-full p-6 text-center font-body text-lg font-bold text-ink">
+          <p className="sticker-panel relative w-full p-6 pr-14 text-center font-body text-lg font-bold text-ink">
             {state.exercise.sentence_with_blank}
+            <PronounceButton
+              text={state.exercise.sentence_with_blank}
+              lang={targetSpeechLang}
+              blankMarker="_____"
+            />
           </p>
 
           <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2">

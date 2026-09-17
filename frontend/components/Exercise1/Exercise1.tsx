@@ -1,13 +1,18 @@
 "use client";
 
 import { useEffect, useReducer, useState } from "react";
-import Image from "next/image";
 import { useSession } from "@/lib/session/SessionContext";
+import { useFeedback } from "@/lib/feedback/FeedbackContext";
+import { ScoreBadge } from "@/components/ScoreBadge/ScoreBadge";
+import { PronounceButton } from "@/components/PronounceButton/PronounceButton";
+import { SceneItemImage } from "@/components/SceneItemImage/SceneItemImage";
+import { TranslatableQuestion } from "@/components/TranslatableQuestion/TranslatableQuestion";
 import { shuffle } from "@/lib/shuffle";
 import type { SceneCategory, SceneItem } from "@/lib/scenes/types";
 import {
   TARGET_LANGUAGE_LABEL_KEY,
   PREFERRED_LANGUAGE_LABEL_KEY,
+  TARGET_LANGUAGE_SPEECH_CODE,
   WHAT_IS_THIS,
   CORRECT_EXCLAMATION,
   type TargetLanguage,
@@ -101,11 +106,20 @@ export function Exercise1({ categories }: { categories: SceneCategory[] }) {
   const [category, setCategory] = useState<SceneCategory | null>(null);
   const [quiz, dispatch] = useReducer(manageQuiz, initialQuizState);
   const { startSession, recordScore, targetLanguage, preferredLanguage } = useSession();
+  const fx = useFeedback();
 
   const targetKey = TARGET_LANGUAGE_LABEL_KEY[targetLanguage as TargetLanguage] ?? "es";
   const preferredKey = PREFERRED_LANGUAGE_LABEL_KEY[preferredLanguage ?? ""] ?? "en";
+  const targetSpeechLang =
+    TARGET_LANGUAGE_SPEECH_CODE[targetLanguage as TargetLanguage] ?? "es-ES";
   const whatIsThis =
     WHAT_IS_THIS[targetLanguage as TargetLanguage] ?? WHAT_IS_THIS.Spanish;
+  // WHAT_IS_THIS already covers English/Hindi/Spanish/French (plus German) —
+  // exactly PREFERRED_LANGUAGE_OPTIONS' set — so the same table doubles as
+  // the "what is this?" translation for whichever language the learner
+  // actually understands, no separate table needed.
+  const whatIsThisTranslation =
+    WHAT_IS_THIS[preferredLanguage as TargetLanguage] ?? WHAT_IS_THIS.English;
   const correctExclamation =
     CORRECT_EXCLAMATION[targetLanguage as TargetLanguage] ?? CORRECT_EXCLAMATION.Spanish;
 
@@ -113,6 +127,21 @@ export function Exercise1({ categories }: { categories: SceneCategory[] }) {
     recordScore("word-identification", quiz.score);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quiz.score]);
+
+  useEffect(() => {
+    if (quiz.correct) fx.celebrate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quiz.correct]);
+
+  useEffect(() => {
+    if (quiz.incorrectIds.length > 0) fx.stumble();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quiz.incorrectIds.length]);
+
+  useEffect(() => {
+    if (screen === "complete") fx.levelUp();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [screen]);
 
   useEffect(() => {
     if (!quiz.correct || !category) return;
@@ -163,19 +192,17 @@ export function Exercise1({ categories }: { categories: SceneCategory[] }) {
             >
               <div className="grid grid-cols-3 gap-1">
                 {cat.objects.slice(0, 3).map((object) => (
-                  <div key={object.id} className="relative h-12 w-12">
-                    <Image
-                      src={object.imageUrl}
-                      alt={object.label.en}
-                      fill
-                      sizes="48px"
-                      className="object-contain"
-                    />
-                  </div>
+                  <SceneItemImage
+                    key={object.id}
+                    item={object}
+                    size={48}
+                    sizes="48px"
+                    emojiTextClass="text-3xl"
+                  />
                 ))}
               </div>
               <span className="font-display text-xl font-bold text-ink">
-                {cat.categoryName}
+                {cat.categoryName[preferredKey]}
               </span>
               <span className="font-body text-sm font-semibold text-ink/70">
                 {cat.objects.length} words
@@ -197,7 +224,7 @@ export function Exercise1({ categories }: { categories: SceneCategory[] }) {
         </div>
 
         <h1 className="font-display text-2xl font-bold text-ink">
-          {category.categoryName}
+          {category.categoryName[preferredKey]}
         </h1>
         <p className="font-body font-semibold text-ink/70">
           Study these words, then start the quiz.
@@ -207,19 +234,12 @@ export function Exercise1({ categories }: { categories: SceneCategory[] }) {
           {category.objects.map((object) => (
             <div
               key={object.id}
-              className="sticker-panel flex flex-col items-center gap-2 p-4"
+              className="sticker-panel flex flex-col items-center gap-2 p-4 relative"
             >
-              <div className="relative h-20 w-20">
-                <Image
-                  src={object.imageUrl}
-                  alt={object.label.en}
-                  fill
-                  sizes="80px"
-                  className="object-contain"
-                />
-              </div>
-              <span className="font-display text-base font-bold text-ink">
+              <SceneItemImage item={object} size={80} sizes="80px" emojiTextClass="text-5xl" />
+              <span className="flex items-center gap-1.5 font-display text-base font-bold text-ink">
                 {object.label[targetKey]}
+                <PronounceButton text={object.label[targetKey]} lang={targetSpeechLang} />
               </span>
               <span className="font-body text-sm font-semibold text-ink/60">
                 {object.label[preferredKey]}
@@ -242,24 +262,24 @@ export function Exercise1({ categories }: { categories: SceneCategory[] }) {
           <button onClick={() => setScreen("study")} className="btn-ghost">
             ← Study
           </button>
-          <span className="badge-score">🏅 Score: {quiz.score}</span>
+          <ScoreBadge score={quiz.score} />
         </div>
 
         <h1 className="font-display text-2xl font-bold text-ink">
-          {category.categoryName} Quiz
+          {category.categoryName[preferredKey]} Quiz
         </h1>
 
         <div className="sticker-panel flex flex-col items-center gap-4 p-6">
-          <div className="relative h-24 w-24">
-            <Image
-              src={quiz.item.imageUrl}
-              alt={quiz.item.label.en}
-              fill
-              sizes="96px"
-              className="object-contain"
-            />
-          </div>
-          <p className="font-display text-lg font-bold text-ink">{whatIsThis}</p>
+          <SceneItemImage item={quiz.item} size={96} sizes="96px" emojiTextClass="text-6xl" />
+          <TranslatableQuestion
+            key={quiz.item.id}
+            question={whatIsThis}
+            translation={whatIsThisTranslation}
+            lang={targetSpeechLang}
+            bare
+            summaryClassName="font-display text-lg font-bold text-ink"
+            minHeightClass=""
+          />
         </div>
 
         <div className="grid w-full grid-cols-2 gap-3">
@@ -301,7 +321,7 @@ export function Exercise1({ categories }: { categories: SceneCategory[] }) {
       <div className="flex w-full max-w-lg flex-col items-center gap-6">
         <div className="sticker-panel w-full border-treasure bg-treasure/20 p-6 text-center">
           <p className="font-display text-2xl font-bold text-ink">
-            {category.categoryName} complete! 🎉
+            {category.categoryName[preferredKey]} complete! 🎉
           </p>
           <p className="badge-score mt-3 inline-flex">
             🏅 Score: {quiz.score} / {category.objects.length}
@@ -314,7 +334,7 @@ export function Exercise1({ categories }: { categories: SceneCategory[] }) {
               onClick={() => handleSelectCategory(otherCategory)}
               className="btn-explorer"
             >
-              Try {otherCategory.categoryName} →
+              Try {otherCategory.categoryName[preferredKey]} →
             </button>
           )}
           <SessionNav current="word-identification" />

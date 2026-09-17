@@ -1,7 +1,10 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSession } from "@/lib/session/SessionContext";
+import { useFeedback } from "@/lib/feedback/FeedbackContext";
+import { getGuidanceCopy, localizeTargetLanguage } from "@/lib/feedback/guidanceCopy";
 import { RequireOnboarding } from "@/components/RequireOnboarding/RequireOnboarding";
 
 const QUEST_TILES = [
@@ -65,7 +68,18 @@ const ACCENT_BG: Record<string, string> = {
 };
 
 function HomeContent() {
-  const { learnerName, targetLanguage } = useSession();
+  const { learnerName, targetLanguage, preferredLanguage } = useSession();
+  const fx = useFeedback();
+  const greeted = useRef(false);
+
+  useEffect(() => {
+    if (greeted.current || !learnerName || !targetLanguage) return;
+    greeted.current = true;
+    const guidance = getGuidanceCopy(preferredLanguage);
+    const localizedTarget = localizeTargetLanguage(preferredLanguage, targetLanguage);
+    fx.say(guidance.greetingLine(learnerName, localizedTarget), "excited");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [learnerName]);
 
   return (
     <div className="flex flex-1 flex-col items-center gap-12 px-4 py-16">

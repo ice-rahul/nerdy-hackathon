@@ -1,18 +1,25 @@
 "use client";
 
-import { useEffect, useReducer } from "react";
+import { useEffect, useReducer, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { generateJson } from "@/lib/api";
-import { shuffle } from "@/lib/shuffle";
+import { generateJsonStream } from "@/lib/api";
+import { dedupeByKey, shuffle } from "@/lib/shuffle";
 import {
   buildGuidedQAPrompt,
+  difficultyForScore,
   pickRandomPhrase,
   type GuidedQAExercise,
   type GuidedQAOption,
 } from "@/lib/exercises";
 import { useSession } from "@/lib/session/SessionContext";
+import { useFeedback } from "@/lib/feedback/FeedbackContext";
 import { ReinforcementBadge } from "@/components/ReinforcementBadge/ReinforcementBadge";
+import { ScoreBadge } from "@/components/ScoreBadge/ScoreBadge";
+import { StreamingText } from "@/components/StreamingText/StreamingText";
+import { OptionsSkeleton } from "@/components/OptionsSkeleton/OptionsSkeleton";
+import { TranslatableQuestion } from "@/components/TranslatableQuestion/TranslatableQuestion";
 import { SessionNav } from "@/components/SessionNav/SessionNav";
+import { TARGET_LANGUAGE_SPEECH_CODE, type TargetLanguage } from "@/lib/languages";
 
 const NEXT_EXERCISE_DELAY_MS = 900;
 
@@ -50,7 +57,13 @@ function manageGame(state: GameState, action: GameAction): GameState {
         ...state,
         exercise: action.exercise,
         phrase: action.phrase,
-        options: shuffle(action.exercise.options),
+        options: shuffle(
+          dedupeByKey(
+            action.exercise.options,
+            (option) => option.text,
+            (option) => option.correct
+          )
+        ),
         incorrect: [],
         correct: false,
       };
@@ -71,13 +84,27 @@ function manageGame(state: GameState, action: GameAction): GameState {
 
 export function GuidedQA() {
   const [state, dispatch] = useReducer(manageGame, initialState);
+  const [streamingQuestion, setStreamingQuestion] = useState("");
   const { activeVocabulary, sessionStarted, recordScore, hydrated, preferredLanguage, targetLanguage } =
     useSession();
+  const fx = useFeedback();
+  const targetSpeechLang =
+    TARGET_LANGUAGE_SPEECH_CODE[targetLanguage as TargetLanguage] ?? "es-ES";
 
   useEffect(() => {
     recordScore("qa", state.score);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.score]);
+
+  useEffect(() => {
+    if (state.correct) fx.celebrate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.correct]);
+
+  useEffect(() => {
+    if (state.incorrect.length > 0) fx.stumble();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.incorrect.length]);
 
   const {
     mutate: loadExercise,
@@ -85,9 +112,17 @@ export function GuidedQA() {
     error: fetchError,
   } = useMutation({
     mutationFn: () => {
+      setStreamingQuestion("");
       const phrase = pickRandomPhrase(activeVocabulary);
-      return generateJson<GuidedQAExercise>(
-        buildGuidedQAPrompt(phrase, activeVocabulary, targetLanguage!, preferredLanguage!)
+      return generateJsonStream<GuidedQAExercise>(
+        buildGuidedQAPrompt(
+          phrase,
+          activeVocabulary,
+          targetLanguage!,
+          preferredLanguage!,
+          difficultyForScore(state.score)
+        ),
+        (partial) => setStreamingQuestion(partial.question ?? "")
       ).then((exercise) => ({ exercise, phrase }));
     },
     onSuccess: ({ exercise, phrase }) =>
@@ -116,11 +151,16 @@ export function GuidedQA() {
         <h1 className="font-display text-2xl font-bold text-ink">
           Guided Q&amp;A
         </h1>
-        <span className="badge-score">🏅 Score: {state.score}</span>
+        <ScoreBadge score={state.score} />
       </div>
 
       {isLoading && (
-        <p className="font-body font-semibold text-ink/70">Loading exercise...</p>
+        <>
+          <StreamingText text={streamingQuestion} />
+          <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
+            <OptionsSkeleton count={4} />
+          </div>
+        </>
       )}
 
       {isError && (
@@ -138,9 +178,12 @@ export function GuidedQA() {
             <ReinforcementBadge words={[state.phrase]} />
           )}
 
-          <p className="sticker-panel w-full p-6 text-center font-body text-lg font-bold text-ink">
-            {state.exercise.question}
-          </p>
+          <TranslatableQuestion
+            key={state.exercise.question}
+            question={state.exercise.question}
+            translation={state.exercise.question_translation}
+            lang={targetSpeechLang}
+          />
 
           <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
             {state.options.map((option) => {

@@ -1,63 +1,188 @@
 [
   {
+    "categoryId": "phrases",
+    "categoryName": { "en": "Everyday Phrases", "es": "Frases cotidianas", "fr": "Phrases courantes", "de": "Alltagsphrasen", "hi": "रोज़मर्रा के वाक्यांश" },
+    "objects": [
+      {
+        "id": "thank-you",
+        "label": { "es": "gracias", "en": "thank you", "fr": "merci", "de": "danke", "hi": "धन्यवाद" },
+        "emoji": "🙏"
+      },
+      {
+        "id": "please",
+        "label": { "es": "por favor", "en": "please", "fr": "s'il te plaît", "de": "bitte", "hi": "कृपया" },
+        "emoji": "🤲"
+      },
+      {
+        "id": "sorry",
+        "label": { "es": "lo siento", "en": "sorry", "fr": "désolé", "de": "entschuldigung", "hi": "क्षमा करें" },
+        "emoji": "😔"
+      },
+      {
+        "id": "excuse-me",
+        "label": { "es": "disculpe", "en": "excuse me", "fr": "excusez-moi", "de": "entschuldigen Sie", "hi": "माफ़ कीजिए" },
+        "emoji": "✋"
+      },
+      {
+        "id": "good-morning",
+        "label": { "es": "buenos días", "en": "good morning", "fr": "bonjour", "de": "guten Morgen", "hi": "सुप्रभात" },
+        "emoji": "🌅"
+      },
+      {
+        "id": "goodbye",
+        "label": { "es": "adiós", "en": "goodbye", "fr": "au revoir", "de": "auf Wiedersehen", "hi": "अलविदा" },
+        "emoji": "👋"
+      },
+      {
+        "id": "how-are-you",
+        "label": { "es": "¿Cómo estás?", "en": "how are you?", "fr": "Comment ça va ?", "de": "Wie geht es dir?", "hi": "आप कैसे हैं?" },
+        "emoji": "❓"
+      },
+      {
+        "id": "whats-your-name",
+        "label": { "es": "¿Cómo te llamas?", "en": "what is your name?", "fr": "Comment tu t'appelles ?", "de": "Wie heißt du?", "hi": "आपका नाम क्या है?" },
+        "emoji": "🏷️"
+      }
+    ]
+  },
+  {
+    "categoryId": "numbers",
+    "categoryName": { "en": "Numbers", "es": "Números", "fr": "Nombres", "de": "Zahlen", "hi": "संख्याएँ" },
+    "objects": [
+      { "id": "num-0", "label": { "es": "cero", "en": "zero", "fr": "zéro", "de": "null", "hi": "शून्य" }, "emoji": "0️⃣" },
+      { "id": "num-1", "label": { "es": "uno", "en": "one", "fr": "un", "de": "eins", "hi": "एक" }, "emoji": "1️⃣" },
+      { "id": "num-2", "label": { "es": "dos", "en": "two", "fr": "deux", "de": "zwei", "hi": "दो" }, "emoji": "2️⃣" },
+      { "id": "num-3", "label": { "es": "tres", "en": "three", "fr": "trois", "de": "drei", "hi": "तीन" }, "emoji": "3️⃣" },
+      { "id": "num-4", "label": { "es": "cuatro", "en": "four", "fr": "quatre", "de": "vier", "hi": "चार" }, "emoji": "4️⃣" },
+      { "id": "num-5", "label": { "es": "cinco", "en": "five", "fr": "cinq", "de": "fünf", "hi": "पांच" }, "emoji": "5️⃣" },
+      { "id": "num-6", "label": { "es": "seis", "en": "six", "fr": "six", "de": "sechs", "hi": "छह" }, "emoji": "6️⃣" },
+      { "id": "num-7", "label": { "es": "siete", "en": "seven", "fr": "sept", "de": "sieben", "hi": "सात" }, "emoji": "7️⃣" },
+      { "id": "num-8", "label": { "es": "ocho", "en": "eight", "fr": "huit", "de": "acht", "hi": "आठ" }, "emoji": "8️⃣" },
+      { "id": "num-9", "label": { "es": "nueve", "en": "nine", "fr": "neuf", "de": "neun", "hi": "नौ" }, "emoji": "9️⃣" },
+      { "id": "num-10", "label": { "es": "diez", "en": "ten", "fr": "dix", "de": "zehn", "hi": "दस" }, "emoji": "🔟" }
+    ]
+  },
+  {
     "categoryId": "kitchen",
-    "categoryName": "Kitchen",
+    "categoryName": { "en": "Kitchen", "es": "Cocina", "fr": "Cuisine", "de": "Küche", "hi": "रसोई" },
     "objects": [
       {
         "id": "apple",
-        "label": { "es": "manzana", "en": "apple", "fr": "pomme", "de": "Apfel" },
+        "label": { "es": "manzana", "en": "apple", "fr": "pomme", "de": "Apfel", "hi": "सेब" },
         "imageUrl": "/images/exercise1/apple.png"
       },
       {
         "id": "banana",
-        "label": { "es": "plátano", "en": "banana", "fr": "banane", "de": "Banane" },
+        "label": { "es": "plátano", "en": "banana", "fr": "banane", "de": "Banane", "hi": "केला" },
         "imageUrl": "/images/exercise1/banana.png"
       },
       {
         "id": "milk",
-        "label": { "es": "leche", "en": "milk", "fr": "lait", "de": "Milch" },
+        "label": { "es": "leche", "en": "milk", "fr": "lait", "de": "Milch", "hi": "दूध" },
         "imageUrl": "/images/exercise1/milk.png"
       },
       {
         "id": "bread",
-        "label": { "es": "pan", "en": "bread", "fr": "pain", "de": "Brot" },
+        "label": { "es": "pan", "en": "bread", "fr": "pain", "de": "Brot", "hi": "ब्रेड" },
         "imageUrl": "/images/exercise1/bread.png"
       },
       {
         "id": "cheese",
-        "label": { "es": "queso", "en": "cheese", "fr": "fromage", "de": "Käse" },
+        "label": { "es": "queso", "en": "cheese", "fr": "fromage", "de": "Käse", "hi": "चीज़" },
         "imageUrl": "/images/exercise1/cheese.png"
       }
     ]
   },
   {
     "categoryId": "bedroom",
-    "categoryName": "Bedroom",
+    "categoryName": { "en": "Bedroom", "es": "Dormitorio", "fr": "Chambre", "de": "Schlafzimmer", "hi": "बेडरूम" },
     "objects": [
       {
         "id": "bed",
-        "label": { "es": "cama", "en": "bed", "fr": "lit", "de": "Bett" },
+        "label": { "es": "cama", "en": "bed", "fr": "lit", "de": "Bett", "hi": "बिस्तर" },
         "imageUrl": "/images/exercise1/bed.png"
       },
       {
         "id": "lamp",
-        "label": { "es": "lámpara", "en": "lamp", "fr": "lampe", "de": "Lampe" },
+        "label": { "es": "lámpara", "en": "lamp", "fr": "lampe", "de": "Lampe", "hi": "लैंप" },
         "imageUrl": "/images/exercise1/lamp.png"
       },
       {
         "id": "window",
-        "label": { "es": "ventana", "en": "window", "fr": "fenêtre", "de": "Fenster" },
+        "label": { "es": "ventana", "en": "window", "fr": "fenêtre", "de": "Fenster", "hi": "खिड़की" },
         "imageUrl": "/images/exercise1/window.png"
       },
       {
         "id": "chair",
-        "label": { "es": "silla", "en": "chair", "fr": "chaise", "de": "Stuhl" },
+        "label": { "es": "silla", "en": "chair", "fr": "chaise", "de": "Stuhl", "hi": "कुर्सी" },
         "imageUrl": "/images/exercise1/chair.png"
       },
       {
         "id": "book",
-        "label": { "es": "libro", "en": "book", "fr": "livre", "de": "Buch" },
+        "label": { "es": "libro", "en": "book", "fr": "livre", "de": "Buch", "hi": "किताब" },
         "imageUrl": "/images/exercise1/book.png"
+      }
+    ]
+  },
+  {
+    "categoryId": "bathroom",
+    "categoryName": { "en": "Bathroom", "es": "Baño", "fr": "Salle de bain", "de": "Badezimmer", "hi": "बाथरूम" },
+    "objects": [
+      {
+        "id": "toothbrush",
+        "label": { "es": "cepillo de dientes", "en": "toothbrush", "fr": "brosse à dents", "de": "Zahnbürste", "hi": "टूथब्रश" },
+        "imageUrl": "/images/exercise1/toothbrush.png"
+      },
+      {
+        "id": "soap",
+        "label": { "es": "jabón", "en": "soap", "fr": "savon", "de": "Seife", "hi": "साबुन" },
+        "imageUrl": "/images/exercise1/soap.png"
+      },
+      {
+        "id": "towel",
+        "label": { "es": "toalla", "en": "towel", "fr": "serviette", "de": "Handtuch", "hi": "तौलिया" },
+        "imageUrl": "/images/exercise1/towel.png"
+      },
+      {
+        "id": "mirror",
+        "label": { "es": "espejo", "en": "mirror", "fr": "miroir", "de": "Spiegel", "hi": "आईना" },
+        "imageUrl": "/images/exercise1/mirror.png"
+      },
+      {
+        "id": "shower",
+        "label": { "es": "ducha", "en": "shower", "fr": "douche", "de": "Dusche", "hi": "शावर" },
+        "imageUrl": "/images/exercise1/shower.png"
+      }
+    ]
+  },
+  {
+    "categoryId": "classroom",
+    "categoryName": { "en": "Classroom", "es": "Aula", "fr": "Salle de classe", "de": "Klassenzimmer", "hi": "कक्षा" },
+    "objects": [
+      {
+        "id": "pencil",
+        "label": { "es": "lápiz", "en": "pencil", "fr": "crayon", "de": "Bleistift", "hi": "पेंसिल" },
+        "imageUrl": "/images/exercise1/pencil.png"
+      },
+      {
+        "id": "notebook",
+        "label": { "es": "cuaderno", "en": "notebook", "fr": "cahier", "de": "Heft", "hi": "नोटबुक" },
+        "imageUrl": "/images/exercise1/notebook.png"
+      },
+      {
+        "id": "backpack",
+        "label": { "es": "mochila", "en": "backpack", "fr": "sac à dos", "de": "Rucksack", "hi": "बस्ता" },
+        "imageUrl": "/images/exercise1/backpack.png"
+      },
+      {
+        "id": "desk",
+        "label": { "es": "escritorio", "en": "desk", "fr": "bureau", "de": "Schreibtisch", "hi": "डेस्क" },
+        "imageUrl": "/images/exercise1/desk.png"
+      },
+      {
+        "id": "scissors",
+        "label": { "es": "tijeras", "en": "scissors", "fr": "ciseaux", "de": "Schere", "hi": "कैंची" },
+        "imageUrl": "/images/exercise1/scissors.png"
       }
     ]
   }

@@ -1,7 +1,7 @@
 # LinguaBuild — Nerdy AI Hackathon Challenge Plan (Language Learning App)
 
 **Contest:** Nerdy AI Hackathon Challenge (hackathon.nerdy.com)
-**Submission deadline:** Monday, Sep 7, 2026, 11:59 PM CDT
+**Submission deadline:** Wednesday, Sep 9, 2026, 11:59 PM CDT (extended 2 days from the original Sep 7)
 **Prompt chosen:** Language Learning App
 **Status:** This plan replaces the earlier StoryPath (English Reading Game) direction — no code was written under that plan, so nothing is lost by switching, only planning time.
 **Prepared:** Aug 2026

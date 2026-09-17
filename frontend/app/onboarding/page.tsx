@@ -13,7 +13,32 @@ export default function OnboardingPage() {
   const [preferredLanguage, setPreferredLanguage] = useState<string>(
     PREFERRED_LANGUAGE_OPTIONS[0]
   );
-  const [targetLanguage, setTargetLanguage] = useState<string>(TARGET_LANGUAGE_OPTIONS[0]);
+  // Lazy initializer rather than a bare TARGET_LANGUAGE_OPTIONS[0]: guards
+  // against the two option lists' first entries ever colliding (they don't
+  // today, since PREFERRED_LANGUAGE_OPTIONS[0] is "English" and
+  // TARGET_LANGUAGE_OPTIONS[0] is "Spanish", but list order is easy to
+  // change later without noticing this constraint).
+  const [targetLanguage, setTargetLanguage] = useState<string>(
+    () => TARGET_LANGUAGE_OPTIONS.find((language) => language !== PREFERRED_LANGUAGE_OPTIONS[0]) ?? TARGET_LANGUAGE_OPTIONS[0]
+  );
+
+  // Spanish and French appear in both option lists (you can speak either as
+  // your native language, or be learning it) — without this, a Spanish
+  // speaker could "learn" Spanish. Hide whichever target matches the
+  // learner's native language, and if the current target was that language,
+  // fall back to the first one that's still valid.
+  const availableTargetLanguages = TARGET_LANGUAGE_OPTIONS.filter(
+    (language) => language !== preferredLanguage
+  );
+
+  function handlePreferredLanguageChange(value: string) {
+    setPreferredLanguage(value);
+    if (value === targetLanguage) {
+      setTargetLanguage(
+        TARGET_LANGUAGE_OPTIONS.find((language) => language !== value) ?? TARGET_LANGUAGE_OPTIONS[0]
+      );
+    }
+  }
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -64,7 +89,7 @@ export default function OnboardingPage() {
           <select
             id="preferred-language"
             value={preferredLanguage}
-            onChange={(event) => setPreferredLanguage(event.target.value)}
+            onChange={(event) => handlePreferredLanguageChange(event.target.value)}
             className="rounded-2xl border-4 border-ink bg-white px-4 py-3 font-body text-base font-bold text-ink shadow-sticker-sm focus:outline-none"
           >
             {PREFERRED_LANGUAGE_OPTIONS.map((language) => (
@@ -85,7 +110,7 @@ export default function OnboardingPage() {
             onChange={(event) => setTargetLanguage(event.target.value)}
             className="rounded-2xl border-4 border-ink bg-white px-4 py-3 font-body text-base font-bold text-ink shadow-sticker-sm focus:outline-none"
           >
-            {TARGET_LANGUAGE_OPTIONS.map((language) => (
+            {availableTargetLanguages.map((language) => (
               <option key={language} value={language}>
                 {language}
               </option>

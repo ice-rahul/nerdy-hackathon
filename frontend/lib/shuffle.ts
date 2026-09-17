@@ -8,3 +8,24 @@ export function shuffle<T>(items: T[]): T[] {
   }
   return result;
 }
+
+// AI-generated option sets occasionally repeat a distractor (or repeat the
+// correct answer as a "distractor"), which produces a React duplicate-key
+// warning and an MCQ with a free extra guess. Dedupe by key before shuffling
+// — when a duplicate group contains an item `preferCorrect` flags, that one
+// wins so the real answer is never the one silently dropped.
+export function dedupeByKey<T>(
+  items: T[],
+  keyFn: (item: T) => string,
+  preferCorrect?: (item: T) => boolean
+): T[] {
+  const seen = new Map<string, T>();
+  for (const item of items) {
+    const key = keyFn(item);
+    const existing = seen.get(key);
+    if (!existing || (preferCorrect?.(item) && !preferCorrect?.(existing))) {
+      seen.set(key, item);
+    }
+  }
+  return Array.from(seen.values());
+}

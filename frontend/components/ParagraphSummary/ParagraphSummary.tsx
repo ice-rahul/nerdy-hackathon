@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useReducer } from "react";
+import { useEffect, useReducer, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { generateJson } from "@/lib/api";
-import { shuffle } from "@/lib/shuffle";
+import { generateJsonStream } from "@/lib/api";
+import { dedupeByKey, shuffle } from "@/lib/shuffle";
 import {
   buildParagraphSummaryPrompt,
   pickRandomPhrases,
@@ -11,8 +11,14 @@ import {
   type ParagraphSummaryOption,
 } from "@/lib/exercises";
 import { useSession } from "@/lib/session/SessionContext";
+import { useFeedback } from "@/lib/feedback/FeedbackContext";
 import { ReinforcementBadge } from "@/components/ReinforcementBadge/ReinforcementBadge";
+import { ScoreBadge } from "@/components/ScoreBadge/ScoreBadge";
+import { StreamingText } from "@/components/StreamingText/StreamingText";
+import { OptionsSkeleton } from "@/components/OptionsSkeleton/OptionsSkeleton";
+import { PronounceButton } from "@/components/PronounceButton/PronounceButton";
 import { SessionNav } from "@/components/SessionNav/SessionNav";
+import { TARGET_LANGUAGE_SPEECH_CODE, type TargetLanguage } from "@/lib/languages";
 
 const NEXT_EXERCISE_DELAY_MS = 900;
 const PHRASES_PER_PARAGRAPH = 3;
@@ -51,7 +57,13 @@ function manageGame(state: GameState, action: GameAction): GameState {
         ...state,
         exercise: action.exercise,
         phrases: action.phrases,
-        options: shuffle(action.exercise.options),
+        options: shuffle(
+          dedupeByKey(
+            action.exercise.options,
+            (option) => option.text,
+            (option) => option.correct
+          )
+        ),
         incorrect: [],
         correct: false,
       };
@@ -72,13 +84,27 @@ function manageGame(state: GameState, action: GameAction): GameState {
 
 export function ParagraphSummary() {
   const [state, dispatch] = useReducer(manageGame, initialState);
+  const [streamingParagraph, setStreamingParagraph] = useState("");
   const { activeVocabulary, sessionStarted, recordScore, hydrated, preferredLanguage, targetLanguage } =
     useSession();
+  const fx = useFeedback();
+  const targetSpeechLang =
+    TARGET_LANGUAGE_SPEECH_CODE[targetLanguage as TargetLanguage] ?? "es-ES";
 
   useEffect(() => {
     recordScore("paragraph-summary", state.score);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.score]);
+
+  useEffect(() => {
+    if (state.correct) fx.celebrate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.correct]);
+
+  useEffect(() => {
+    if (state.incorrect.length > 0) fx.stumble();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.incorrect.length]);
 
   const {
     mutate: loadExercise,
@@ -86,9 +112,11 @@ export function ParagraphSummary() {
     error: fetchError,
   } = useMutation({
     mutationFn: () => {
+      setStreamingParagraph("");
       const phrases = pickRandomPhrases(PHRASES_PER_PARAGRAPH, activeVocabulary);
-      return generateJson<ParagraphSummaryExercise>(
-        buildParagraphSummaryPrompt(phrases, targetLanguage!, preferredLanguage!)
+      return generateJsonStream<ParagraphSummaryExercise>(
+        buildParagraphSummaryPrompt(phrases, targetLanguage!, preferredLanguage!),
+        (partial) => setStreamingParagraph(partial.paragraph ?? "")
       ).then((exercise) => ({ exercise, phrases }));
     },
     onSuccess: ({ exercise, phrases }) =>
@@ -117,11 +145,16 @@ export function ParagraphSummary() {
         <h1 className="font-display text-2xl font-bold text-ink">
           Paragraph Summary
         </h1>
-        <span className="badge-score">🏅 Score: {state.score}</span>
+        <ScoreBadge score={state.score} />
       </div>
 
       {isLoading && (
-        <p className="font-body font-semibold text-ink/70">Loading exercise...</p>
+        <>
+          <StreamingText text={streamingParagraph} align="left" minHeightClass="min-h-48" />
+          <div className="grid w-full grid-cols-1 gap-3">
+            <OptionsSkeleton count={4} />
+          </div>
+        </>
       )}
 
       {isError && (
@@ -139,8 +172,9 @@ export function ParagraphSummary() {
             <ReinforcementBadge words={state.phrases} />
           )}
 
-          <p className="sticker-panel w-full p-6 text-left font-body text-lg font-bold text-ink">
+          <p className="sticker-panel relative min-h-48 w-full p-6 pr-14 text-left font-body text-lg font-bold text-ink">
             {state.exercise.paragraph}
+            <PronounceButton text={state.exercise.paragraph} lang={targetSpeechLang} />
           </p>
 
           <div className="grid w-full grid-cols-1 gap-3">

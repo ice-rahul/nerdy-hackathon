@@ -48,6 +48,16 @@ OBJECTS = [
     {"id": "window", "en": "window", "es": "ventana"},
     {"id": "chair", "en": "chair", "es": "silla"},
     {"id": "book", "en": "book", "es": "libro"},
+    {"id": "toothbrush", "en": "toothbrush", "es": "cepillo de dientes"},
+    {"id": "soap", "en": "soap", "es": "jabón"},
+    {"id": "towel", "en": "towel", "es": "toalla"},
+    {"id": "mirror", "en": "mirror", "es": "espejo"},
+    {"id": "shower", "en": "shower", "es": "ducha"},
+    {"id": "pencil", "en": "pencil", "es": "lápiz"},
+    {"id": "notebook", "en": "notebook", "es": "cuaderno"},
+    {"id": "backpack", "en": "backpack", "es": "mochila"},
+    {"id": "desk", "en": "desk", "es": "escritorio"},
+    {"id": "scissors", "en": "scissors", "es": "tijeras"},
 ]
 
 MIN_DIMENSION = 256
@@ -84,8 +94,19 @@ def main():
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     client = InferenceClient(token=token)
 
+    # Skip objects that already have an image on disk — running this again
+    # after adding new categories would otherwise waste time (and vary) the
+    # existing set for no reason. Pass --force to regenerate everything.
+    force = "--force" in sys.argv
+    pending = OBJECTS if force else [
+        obj for obj in OBJECTS if not os.path.exists(os.path.join(OUTPUT_DIR, f"{obj['id']}.png"))
+    ]
+    if not pending:
+        print("All object images already exist — nothing to do (pass --force to regenerate).")
+        return
+
     results = []
-    for obj in OBJECTS:
+    for obj in pending:
         prompt = build_prompt(obj["en"])
         print(f"Generating {obj['id']}...")
         image = generate_one(client, prompt)

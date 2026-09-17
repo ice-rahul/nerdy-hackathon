@@ -1,17 +1,30 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSession } from "@/lib/session/SessionContext";
+import { useFeedback } from "@/lib/feedback/FeedbackContext";
+import { getGuidanceCopy } from "@/lib/feedback/guidanceCopy";
 import { EXERCISE_ORDER } from "@/lib/session/order";
 import { LanguageBar } from "@/components/LanguageBar/LanguageBar";
 
 export default function ProgressPage() {
-  const { activeVocabulary, sessionStarted, scores, completed } = useSession();
+  const { activeVocabulary, sessionStarted, scores, completed, preferredLanguage } = useSession();
+  const fx = useFeedback();
+  const celebrated = useRef(false);
 
   const totalScore = Object.values(scores).reduce(
     (sum, score) => sum + (score ?? 0),
     0
   );
+
+  useEffect(() => {
+    if (!completed || celebrated.current) return;
+    celebrated.current = true;
+    const guidance = getGuidanceCopy(preferredLanguage);
+    fx.levelUp(guidance.sessionCompleteLine(totalScore));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [completed]);
 
   if (!sessionStarted) {
     return (

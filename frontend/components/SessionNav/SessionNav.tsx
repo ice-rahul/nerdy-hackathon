@@ -10,8 +10,8 @@ export function SessionNav({ current }: { current: ExerciseKey }) {
 
   if (!next) {
     return (
-      <Link href="/" onClick={completeSession} className="btn-quest">
-        Finish session — back to home
+      <Link href="/progress" onClick={completeSession} className="btn-quest">
+        Finish session — see my progress
       </Link>
     );
   }
@@ -19,7 +19,7 @@ export function SessionNav({ current }: { current: ExerciseKey }) {
   return (
     <div className="flex flex-wrap items-center justify-end gap-3">
       {next.optional && (
-        <Link href="/" onClick={completeSession} className="btn-ghost">
+        <Link href="/progress" onClick={completeSession} className="btn-ghost">
           Finish session (skip {next.label})
         </Link>
       )}

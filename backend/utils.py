@@ -1,8 +1,12 @@
-from anthropic import Anthropic
-from dotenv import load_dotenv
+import logging
 import os
 
+from anthropic import Anthropic
+from dotenv import load_dotenv
+
 load_dotenv()
+
+logger = logging.getLogger("linguabuild")
 
 model = "claude-haiku-4-5"
 
@@ -35,6 +39,15 @@ def stream_json_response(messages, system=None, temperature=1.0):
     if system:
         params["system"] = system
 
-    with client.messages.stream(**params) as stream:
-        for text in stream.text_stream:
-            yield text
+    try:
+        with client.messages.stream(**params) as stream:
+            for text in stream.text_stream:
+                yield text
+    except Exception:
+        # The HTTP response has already started (200, streaming) by the time
+        # this can happen, so there's no clean way to turn this into an error
+        # status — the client sees a truncated stream and fails to parse it.
+        # At minimum, log server-side so a failure is visible in ops, rather
+        # than disappearing silently.
+        logger.exception("stream_json_response failed mid-stream")
+        raise

@@ -28,28 +28,23 @@ export type FillBlankExercise = {
   preferred_language: string;
 };
 
+// Every build*Prompt function below returns an `exercise` kind plus typed
+// params, never prompt text — the actual template lives server-side
+// (backend/prompts.py) so the client can't smuggle arbitrary instructions
+// into the model call. See lib/api.ts's GenerateRequest for why.
 export function buildFillBlankPrompt(
   phrase: string,
   desiredLanguage: string,
   preferredLanguage: string
 ): GenerateRequest {
-  const system =
-    "You are a language-learning exercise generator. Respond with a single JSON object only — no markdown, no code fences, no commentary.";
-
-  const user = `Create a fill-in-the-blank exercise that teaches the ${desiredLanguage} phrase for "${phrase}" (${preferredLanguage}).
-
-Write one natural ${desiredLanguage} sentence that uses this phrase, with the phrase itself replaced by a blank (use "_____" as the blank marker). Give the correct phrase that fills the blank, and exactly 3 plausible but incorrect distractor options of similar length and difficulty, in ${desiredLanguage}.
-
-Respond with a JSON object with exactly these fields:
-{
-  "sentence_with_blank": string,
-  "correct_answer": string,
-  "distractor_options": [string, string, string],
-  "desired_language": "${desiredLanguage}",
-  "preferred_language": "${preferredLanguage}"
-}`;
-
-  return { system, messages: [{ role: "user", content: user }] };
+  return {
+    exercise: "fill_blank",
+    params: {
+      phrase,
+      desired_language: desiredLanguage,
+      preferred_language: preferredLanguage,
+    },
+  };
 }
 
 // Question length ramps up over a session rather than staying fixed at "up
@@ -57,12 +52,6 @@ Respond with a JSON object with exactly these fields:
 // couple of questions) is a single short sentence, so the very first thing
 // a beginner sees is genuinely easy, not already at the hardest setting.
 export type QuestionDifficulty = 1 | 2 | 3;
-
-const QUESTION_LENGTH_INSTRUCTION: Record<QuestionDifficulty, string> = {
-  1: "Keep it very short and simple: ONE short sentence (no more than about 8-10 words) setting up the scenario, then the question itself — do not add extra description.",
-  2: "Keep it short: at most two short sentences total (including the question) — a brief scenario setup, then the question.",
-  3: "You may use up to three short sentences total (including the question) for a slightly richer scenario, but keep every individual sentence short and simple.",
-};
 
 // Maps "questions answered correctly so far this session" to a difficulty
 // level — the same simple threshold-based ramp used for Exercise 1's
@@ -86,26 +75,15 @@ export function buildQAPrompt(
   preferredLanguage: string,
   difficulty: QuestionDifficulty = 1
 ): GenerateRequest {
-  const system =
-    "You are a language-learning exercise generator. Respond with a single JSON object only — no markdown, no code fences, no commentary.";
-
-  const lengthInstruction = QUESTION_LENGTH_INSTRUCTION[difficulty];
-
-  const user = `Create a short-answer speaking-practice question that teaches the ${desiredLanguage} phrase for "${phrase}" (${preferredLanguage}).
-
-Write a situational question, in ${desiredLanguage}, whose natural short answer is the ${desiredLanguage} phrase for "${phrase}" — describe a scenario a learner would respond to with that phrase, rather than asking for a translation directly. ${lengthInstruction}
-
-Also give a natural ${preferredLanguage} translation of that same question — a learner who doesn't yet understand the ${desiredLanguage} can reveal this to check they understood correctly.
-
-Respond with a JSON object with exactly these fields:
-{
-  "question": string,
-  "question_translation": string,
-  "expected_answer": string,
-  "desired_language": "${desiredLanguage}"
-}`;
-
-  return { system, messages: [{ role: "user", content: user }] };
+  return {
+    exercise: "qa",
+    params: {
+      phrase,
+      desired_language: desiredLanguage,
+      preferred_language: preferredLanguage,
+      difficulty,
+    },
+  };
 }
 
 export type GuidedQAOption = {
@@ -126,35 +104,16 @@ export function buildGuidedQAPrompt(
   preferredLanguage: string,
   difficulty: QuestionDifficulty = 1
 ): GenerateRequest {
-  const system =
-    "You are a language-learning exercise generator. Respond with a single JSON object only — no markdown, no code fences, no commentary.";
-
-  const otherPhrases = pool.filter((p) => p !== phrase).join(", ");
-  const lengthInstruction = QUESTION_LENGTH_INSTRUCTION[difficulty];
-
-  const user = `Create a situational multiple-choice question that teaches the ${desiredLanguage} phrase for "${phrase}" (${preferredLanguage}).
-
-Write a situational question, in ${desiredLanguage}, describing a scenario where the ${desiredLanguage} phrase for "${phrase}" would be the natural response. ${lengthInstruction} The question must be answerable from context alone: a learner who has only seen a small set of common words/phrases (${pool.join(
-    ", "
-  )}) should be able to infer the right answer just from the situation described, without needing to already know any other unfamiliar ${desiredLanguage} vocabulary used in the question. Keep the rest of the ${desiredLanguage} in the question simple, using cognates or a clearly described action so the scenario is understandable to a beginner even if a word or two is unfamiliar.
-
-Then give exactly 4 multiple-choice answer options in ${preferredLanguage}: one correct option, which is the ${preferredLanguage} meaning of "${phrase}", and 3 incorrect distractor options, each the ${preferredLanguage} meaning of a different phrase from this list (do not invent new distractors): ${otherPhrases}.
-
-Also give a natural ${preferredLanguage} translation of the question itself — a learner who doesn't yet understand the ${desiredLanguage} can reveal this to check they understood the scenario correctly.
-
-Respond with a JSON object with exactly these fields:
-{
-  "question": string,
-  "question_translation": string,
-  "options": [
-    { "text": string, "correct": boolean },
-    { "text": string, "correct": boolean },
-    { "text": string, "correct": boolean },
-    { "text": string, "correct": boolean }
-  ]
-}`;
-
-  return { system, messages: [{ role: "user", content: user }] };
+  return {
+    exercise: "guided_qa",
+    params: {
+      phrase,
+      pool,
+      desired_language: desiredLanguage,
+      preferred_language: preferredLanguage,
+      difficulty,
+    },
+  };
 }
 
 export type ParagraphSummaryOption = {
@@ -172,32 +131,14 @@ export function buildParagraphSummaryPrompt(
   desiredLanguage: string,
   preferredLanguage: string
 ): GenerateRequest {
-  const system =
-    "You are a language-learning exercise generator. Respond with a single JSON object only — no markdown, no code fences, no commentary.";
-
-  const phraseList = phrases.join(", ");
-
-  const user = `Write a short ${desiredLanguage} paragraph (3-4 sentences) at a beginner level, naturally using the ${desiredLanguage} phrases for these everyday expressions: ${phraseList}. Keep vocabulary and grammar simple enough for a beginner learner.
-
-Then write 4 multiple-choice summary options, in ${preferredLanguage}, summarizing what the paragraph is about:
-- One option must be an accurate, correct summary of the paragraph.
-- The 3 incorrect options must each use a DIFFERENT distractor strategy — do not repeat the same trick twice:
-  1. Detail-swap: an otherwise-accurate summary that swaps one specific detail (a name, time, place, or object) for a different plausible one.
-  2. Action-inversion: an otherwise-accurate summary that reverses or inverts what actually happened or was said (describes the opposite action or outcome).
-  3. Partial-truth/omission: a summary that captures part of the paragraph accurately but leaves out or misrepresents a key part, making it an incomplete or misleading summary overall.
-
-Respond with a JSON object with exactly these fields:
-{
-  "paragraph": string,
-  "options": [
-    { "text": string, "correct": boolean },
-    { "text": string, "correct": boolean },
-    { "text": string, "correct": boolean },
-    { "text": string, "correct": boolean }
-  ]
-}`;
-
-  return { system, messages: [{ role: "user", content: user }] };
+  return {
+    exercise: "paragraph_summary",
+    params: {
+      phrases,
+      desired_language: desiredLanguage,
+      preferred_language: preferredLanguage,
+    },
+  };
 }
 
 export type GradeVerdict = {
@@ -213,27 +154,14 @@ export function buildGradingPrompt(params: {
   preferredLanguage: string;
 }): GenerateRequest {
   const { question, expectedAnswer, learnerAnswer, desiredLanguage, preferredLanguage } = params;
-
-  const system =
-    "You are a lenient, encouraging language-learning grader. Respond with a single JSON object only — no markdown, no code fences, no commentary.";
-
-  const user = `A learner was asked this question in ${desiredLanguage}:
-<question>${question}</question>
-
-The expected answer is:
-<expected_answer>${expectedAnswer}</expected_answer>
-
-The learner answered:
-<learner_answer>${learnerAnswer}</learner_answer>
-
-Judge whether the learner's answer conveys the same meaning as the expected answer. Be lenient about minor spelling, accent marks, capitalization, and phrasing differences — the learner should pass if they got the meaning right, even if the wording isn't identical. Only mark it incorrect if the meaning is wrong, missing, or unrelated.
-
-Respond with a JSON object with exactly these fields:
-{
-  "correct": boolean,
-  "feedback": string
-}
-Write "feedback" in ${preferredLanguage} — this is coaching the learner in their native language, not more ${desiredLanguage} practice. Keep it to one short, encouraging sentence.`;
-
-  return { system, messages: [{ role: "user", content: user }] };
+  return {
+    exercise: "grade",
+    params: {
+      question,
+      expected_answer: expectedAnswer,
+      learner_answer: learnerAnswer,
+      desired_language: desiredLanguage,
+      preferred_language: preferredLanguage,
+    },
+  };
 }

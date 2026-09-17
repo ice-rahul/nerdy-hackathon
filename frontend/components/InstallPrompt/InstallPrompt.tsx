@@ -29,6 +29,10 @@ export function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
+    // Hydrating from browser-only APIs (matchMedia, userAgent) unavailable
+    // during SSR — this mount effect is exactly the correct place for it,
+    // not the derived-state anti-pattern this rule otherwise guards against.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     setIosDevice(isIos());
     if (isStandalone()) setInstalled(true);

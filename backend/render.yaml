@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: linguabuild-backend
+    runtime: python
+    plan: free
+    autoDeploy: false
+    buildCommand: pip install -r requirements.txt
+    # --proxy-headers makes uvicorn trust Render's reverse proxy's
+    # X-Forwarded-For header so request.client.host (what the /generate
+    # rate limiter keys on) is the real caller's IP, not Render's proxy IP
+    # for every request.
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT --proxy-headers
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      # Tighten from the 30/minute dev default before relying on this in
+      # prod — see backend/CLAUDE.md's "known gotchas".
+      - key: GENERATE_RATE_LIMIT
+        value: 5/minute
+      # Comma-separated list of extra allowed origins (add the deployed
+      # Vercel URL here) — localhost is always allowed on top of this.
+      - key: CORS_ALLOWED_ORIGINS
+        value: ""

@@ -44,7 +44,11 @@ export function FeedbackProvider({ children }: { children: React.ReactNode }) {
   const mutedRef = useRef(muted);
 
   useEffect(() => {
+    // Hydrating from localStorage, unavailable during SSR — this mount
+    // effect is exactly the correct place for it, not the derived-state
+    // anti-pattern this rule otherwise guards against.
     try {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMuted(window.localStorage.getItem(MUTE_STORAGE_KEY) === "1");
     } catch {
       // localStorage unavailable — default to unmuted.

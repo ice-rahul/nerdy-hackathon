@@ -91,8 +91,12 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
+    // Hydrating from localStorage, unavailable during SSR — this mount
+    // effect is exactly the correct place for it, not the derived-state
+    // anti-pattern this rule otherwise guards against.
     const stored = loadStored();
     if (stored) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSession(stored);
     }
     hydratedRef.current = true;

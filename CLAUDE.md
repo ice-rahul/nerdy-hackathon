@@ -35,5 +35,6 @@ Day 9-10: demo recording, buffer, submit
 
 ## Known gotchas
 - Generated `options` arrays always have the correct answer first — always shuffle client-side before rendering, never trust generation order.
-- CORS allowlist in backend/main.py is currently localhost-only — must add the prod Vercel origin before/at deploy, or requests will silently fail.
-- GENERATE_RATE_LIMIT is set to 30/min for dev convenience — tighten back down before deploy (originally 5/min).
+- CORS allowlist in backend/main.py is localhost by default; add the prod Vercel origin via the `CORS_ALLOWED_ORIGINS` env var (comma-separated) at deploy time — no code edit needed.
+- GENERATE_RATE_LIMIT is set to 30/min for dev convenience — set the env var to 5/min (or lower) before deploy. If deployed behind a reverse proxy (Render), the process must be started with uvicorn's `--proxy-headers` flag (see backend/render.yaml) or the rate limiter's per-IP keying breaks.
+- `/generate`'s request body is `{exercise, params}`, never raw `messages`/`system` — every exercise's actual prompt text lives in `backend/prompts.py`'s fixed templates. Do not reintroduce a path that lets the client supply arbitrary prompt/system text; that turns the endpoint into an unrestricted, API-key-billed proxy. Adding a new exercise type means adding a template + Pydantic params model there, not accepting free-form text.

@@ -36,6 +36,7 @@ export function TranslatableQuestion({
     // `open` state on <details> would carry over and a translation left
     // expanded would stay expanded on the next question.
     <details
+      key={question}
       className={`group flex flex-col justify-center text-center [&_summary::-webkit-details-marker]:hidden [&_summary::marker]:content-none ${bare ? minHeightClass : `sticker-panel w-full ${minHeightClass} p-6`
         }`}
     >

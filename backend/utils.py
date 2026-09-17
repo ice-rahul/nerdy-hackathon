@@ -11,10 +11,6 @@ logger = logging.getLogger("linguabuild")
 model = "claude-haiku-4-5"
 
 
-def add_user_message(messages, text):
-    messages.append({"role": "user", "content": text})
-
-
 def add_assistant_message(messages, text):
     messages.append({"role": "assistant", "content": text})
 

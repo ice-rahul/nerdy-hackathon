@@ -1,13 +1,23 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/session/SessionContext";
+import { useFeedback } from "@/lib/feedback/FeedbackContext";
 import { PREFERRED_LANGUAGE_OPTIONS, TARGET_LANGUAGE_OPTIONS } from "@/lib/languages";
 
 export default function OnboardingPage() {
   const router = useRouter();
   const { completeOnboarding } = useSession();
+  const fx = useFeedback();
+  const greeted = useRef(false);
+
+  useEffect(() => {
+    if (greeted.current) return;
+    greeted.current = true;
+    fx.say("Ready to start your quest?", "excited");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [name, setName] = useState("");
   const [preferredLanguage, setPreferredLanguage] = useState<string>(
@@ -54,11 +64,17 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-8 px-4 py-16">
-      <header className="flex flex-col items-center gap-3 text-center">
-        <p className="font-display text-2xl font-bold text-ink">
-          🦉 LinguaBuild
-        </p>
+    <div className="relative flex flex-1 flex-col items-center justify-center gap-8 overflow-hidden px-4 py-16">
+      {/* Quiet warmth behind the wordmark — the one decorative flourish on
+          this page, everything else stays plain per the sticker-book system
+          elsewhere (no gradients, no soft shadows). */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute top-0 left-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/3 rounded-full bg-treasure/30 blur-3xl"
+      />
+
+      <header className="relative flex flex-col items-center gap-3 text-center">
+        <span className="badge-score">🦉 LinguaBuild</span>
         <p className="max-w-sm font-body font-semibold text-ink/70">
           Meet each word five times, five different ways — not flashcards on
           repeat. Pick a language below and we&apos;ll walk you through
@@ -75,11 +91,11 @@ export default function OnboardingPage() {
 
       <form
         onSubmit={handleSubmit}
-        className="sticker-panel flex w-full max-w-sm flex-col gap-5 p-6"
+        className="sticker-panel relative flex w-full max-w-sm flex-col gap-5 p-6"
       >
         <div className="flex flex-col gap-1.5">
           <label htmlFor="name" className="font-display text-sm font-bold text-ink">
-            Your name
+            🧑 Your name
           </label>
           <input
             id="name"
@@ -93,7 +109,7 @@ export default function OnboardingPage() {
 
         <div className="flex flex-col gap-1.5">
           <label htmlFor="preferred-language" className="font-display text-sm font-bold text-ink">
-            Language you speak
+            🗣️ Language you speak
           </label>
           <select
             id="preferred-language"
@@ -111,7 +127,7 @@ export default function OnboardingPage() {
 
         <div className="flex flex-col gap-1.5">
           <label htmlFor="target-language" className="font-display text-sm font-bold text-ink">
-            Language you want to learn
+            🎯 Language you want to learn
           </label>
           <select
             id="target-language"

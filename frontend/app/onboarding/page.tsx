@@ -55,8 +55,17 @@ export default function OnboardingPage() {
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-8 px-4 py-16">
-      <header className="flex flex-col items-center gap-2 text-center">
-        <h1 className="font-display text-3xl font-bold text-ink">
+      <header className="flex flex-col items-center gap-3 text-center">
+        <p className="font-display text-2xl font-bold text-ink">
+          🦉 LinguaBuild
+        </p>
+        <p className="max-w-sm font-body font-semibold text-ink/70">
+          Meet each word five times, five different ways — not flashcards on
+          repeat. Pick a language below and we&apos;ll walk you through
+          recognition, comprehension, and production in one session.
+        </p>
+
+        <h1 className="mt-2 font-display text-3xl font-bold text-ink">
           Welcome, adventurer!
         </h1>
         <p className="max-w-sm font-body font-semibold text-ink/70">

@@ -3,7 +3,7 @@
 Full plan: see /docs/plan.md — read it before starting any work.
 
 ## What this is
-A language-learning web app for the Nerdy AI Hackathon Challenge (English Reading Game pivoted to Language Learning App prompt). Deadline: Sep 9, 2026 (extended 2 days from the original Sep 7).
+A language-learning web app for the Nerdy AI Hackathon Challenge (English Reading Game pivoted to Language Learning App prompt). Deadline: Fri, Sep 18, 2026, end of day (per hackathon.nerdy.com — supersedes the Sep 9 date in docs/plan.md, which reflected an earlier extension). Judging Sep 21-23, Demo Day for finalists Sep 25.
 
 ## Stack
 - Frontend: Next.js (App Router) + Tailwind + TypeScript

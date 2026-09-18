@@ -1,7 +1,7 @@
 # LinguaBuild — Nerdy AI Hackathon Challenge Plan (Language Learning App)
 
 **Contest:** Nerdy AI Hackathon Challenge (hackathon.nerdy.com)
-**Submission deadline:** Wednesday, Sep 9, 2026, 11:59 PM CDT (extended 2 days from the original Sep 7)
+**Submission deadline:** ~~Wednesday, Sep 9, 2026, 11:59 PM CDT (extended 2 days from the original Sep 7)~~ — **superseded:** the live site (hackathon.nerdy.com) now states Fri, Sep 18, 2026, end of day CDT. Judging Sep 21-23, Demo Day for finalists Fri, Sep 25.
 **Prompt chosen:** Language Learning App
 **Status:** This plan replaces the earlier StoryPath (English Reading Game) direction — no code was written under that plan, so nothing is lost by switching, only planning time.
 **Prepared:** Aug 2026
@@ -14,7 +14,7 @@ Same underlying goal as before: build and submit a working AI-powered learning t
 
 **What's at stake:** unchanged from the original plan — cash prizes ($10K/$5K), a guaranteed conversation with Nerdy's team for finalists, visibility toward AI Product Engineer roles (India comp band ~₹1 Cr for senior roles, not guaranteed), and a portfolio-worthy build regardless of outcome.
 
-**Contest mechanics:** unchanged — 2-3 minute demo video + project link, AI-assisted scoring + engineering panel review, Demo Day Sep 11 for finalists.
+**Contest mechanics:** unchanged — 2-3 minute demo video + project link, AI-assisted scoring + engineering panel review, Demo Day Sep 25 for finalists (see superseded-date note above).
 
 ---
 

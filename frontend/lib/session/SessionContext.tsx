@@ -121,7 +121,17 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   function recordScore(exercise: ExerciseKey, score: number) {
     setSession((prev) => {
-      if (prev.scores[exercise] === score) return prev;
+      // Every exercise page's local score is `useReducer`-owned and starts
+      // at 0 on mount — this effect fires immediately with that 0 every
+      // time the page is revisited, before the learner has done anything
+      // this visit. Once an entry already exists, only accept a strictly
+      // higher score (this session's best), so simply reopening a page
+      // already scored on doesn't wipe that progress back to 0. A first
+      // write (entry doesn't exist yet) always goes through, even a
+      // genuine 0, so the Progress page can still tell "attempted, scored
+      // 0" apart from "never attempted" (see app/progress/page.tsx).
+      const current = prev.scores[exercise];
+      if (current !== undefined && score <= current) return prev;
       const next = { ...prev, scores: { ...prev.scores, [exercise]: score } };
       if (hydratedRef.current) persist(next);
       return next;

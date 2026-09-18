@@ -9,7 +9,7 @@ import { EXERCISE_ORDER } from "@/lib/session/order";
 import { LanguageBar } from "@/components/LanguageBar/LanguageBar";
 
 export default function ProgressPage() {
-  const { activeVocabulary, sessionStarted, scores, completed, preferredLanguage } = useSession();
+  const { wordsSeenThisSession, sessionStarted, scores, completed, preferredLanguage } = useSession();
   const fx = useFeedback();
   const celebrated = useRef(false);
 
@@ -65,7 +65,7 @@ export default function ProgressPage() {
           Words seen this session
         </h2>
         <div className="flex flex-wrap gap-2">
-          {activeVocabulary.map((word) => (
+          {wordsSeenThisSession.map((word) => (
             <span
               key={word}
               className="rounded-full border-4 border-ink bg-explorer px-3 py-1 font-display text-sm font-bold text-white shadow-sticker-sm"

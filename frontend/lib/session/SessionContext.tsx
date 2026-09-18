@@ -15,7 +15,18 @@ type LearnerProfile = {
 };
 
 type StoredSession = LearnerProfile & {
+  // The pool Exercises 2-5 currently generate reinforcement content from —
+  // replaced (not merged) by each startSession call, deliberately scoped to
+  // whichever category was picked most recently rather than every category
+  // ever picked, so a generated question doesn't mix unrelated vocabulary.
   activeVocabulary: string[];
+  // Every word introduced across the whole session, for the Progress
+  // page's "Words seen this session" list — unlike activeVocabulary, this
+  // only ever grows. Kept as a separate field because the two have
+  // different semantics: activeVocabulary answers "what should Exercises
+  // 2-5 generate from right now", this answers "what has the learner
+  // actually studied so far".
+  wordsSeenThisSession: string[];
   sessionStarted: boolean;
   scores: Scores;
   completed: boolean;
@@ -44,6 +55,7 @@ const SessionContext = createContext<SessionContextValue | null>(null);
 
 const DEFAULT_SESSION: StoredSession = {
   activeVocabulary: STARTER_PHRASES,
+  wordsSeenThisSession: [],
   sessionStarted: false,
   scores: {},
   completed: false,
@@ -107,9 +119,13 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     setSession((prev) => {
       // Preserve the learner's onboarding profile — starting a new practice
       // session resets progress, not who's learning or which languages.
+      const wordsSeenThisSession = Array.from(
+        new Set([...prev.wordsSeenThisSession, ...vocabulary])
+      );
       const next: StoredSession = {
         ...prev,
         activeVocabulary: vocabulary,
+        wordsSeenThisSession,
         sessionStarted: true,
         scores: {},
         completed: false,

@@ -21,6 +21,15 @@ export function LanguageBar() {
       <span aria-hidden className="opacity-40">
         |
       </span>
+      <Link
+        href="/progress"
+        className="underline decoration-2 underline-offset-2 opacity-70 transition-opacity hover:opacity-100"
+      >
+        🏅 Progress
+      </Link>
+      <span aria-hidden className="opacity-40">
+        |
+      </span>
       <span>
         {learnerName} · Learning {targetLanguage} · Native {preferredLanguage}
       </span>
